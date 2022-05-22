@@ -14,7 +14,12 @@ function createNote(body, notesArray) {
 router.get("/notes", (req, res) => {
   var notes = savedNotes;
   try {
-    res.json(notes);
+    fs.readFile("db/db.json", (err, notes) => {
+      if (err) {
+        throw err;
+      }
+      res.json(JSON.parse(notes));
+    });
   } catch (error) {
     res.json(error);
   }
@@ -23,9 +28,15 @@ router.get("/notes", (req, res) => {
 
 router.post("/notes", (req, res) => {
   try {
-    req.body.id = savedNotes.length.toString();
-    const notes = createNote(req.body, savedNotes);
-    res.json({ msg: "ok" });
+    fs.readFile("db/db.json", (err, notes) => {
+      if (err) {
+        throw err;
+      }
+      var savedNotes = JSON.parse(notes);
+      req.body.id = savedNotes.length.toString();
+      const note = createNote(req.body, savedNotes);
+      res.json({ msg: "ok" });
+    });
   } catch (error) {
     res.json(error);
   }
@@ -33,13 +44,22 @@ router.post("/notes", (req, res) => {
 
 //router.put("", (req, res) => {});
 
-// router.delete("/notes/:id", (req, res) => {
-//   console.log(req.params.id);
-//   var updatedNotes = savedNotes.filter((note) => note.id !== req.params.id);
-//   console.log(updatedNotes);
-//   fs.writeFileSync("db/db.json", JSON.stringify(updatedNotes, null, 2));
-//   res.json({ ok: true });
-//   //res.redirect("/api/notes");
-// });
+router.delete("/notes/:id", (req, res) => {
+  fs.readFile("db/db.json", (err, notes) => {
+    if (err) {
+      throw err;
+    }
+    var savedNotes = JSON.parse(notes);
+    console.log(req.params.id);
+    var updatedNotes = savedNotes.filter((note) => note.id !== req.params.id);
+    console.log(updatedNotes);
+    fs.writeFileSync("db/db.json", JSON.stringify(updatedNotes, null, 2));
+
+    res.json({ ok: true });
+  });
+
+  //res.json({ ok: true });
+  //res.redirect("/api/notes");
+});
 
 module.exports = router;
